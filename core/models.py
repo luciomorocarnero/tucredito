@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import CheckConstraint, F, Q
 from phonenumber_field.modelfields import PhoneNumberField
 
-from .validators import MinAgeValidator
+from .validators import MinAgeValidator # pyright: ignore
 
 
 class TimeStampedModel(models.Model):
