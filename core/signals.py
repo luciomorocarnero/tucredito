@@ -1,5 +1,7 @@
 import logging
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -36,3 +38,37 @@ def log_banco_change(sender, instance, created, **kwargs):
         logger.info(f"CREACION_MODELO | Banco: ID={instance.pk} | Nombre='{instance.nombre}'")
     else:
         logger.info(f"ACTUALIZACION_MODELO | Banco: ID={instance.pk} | Nombre='{instance.nombre}'")
+
+
+@receiver(post_save, sender=Credito)
+def mail_credito_create(sender, instance, created, **kwargs):
+    if created:
+        try:
+            cliente_mail = instance.cliente.email
+
+            if cliente_mail:
+                subject = f"Nuevo credito aprobado"
+                message = (
+                    f"Hola {instance.cliente.nombre_completo},\n\n"
+                    f"Te informamos que se ha registrado un nuevo credito bajo tu nombre.\n\n"
+                    f"{instance.descripcion}\n\n"
+                    f"Tipo de credito: {instance.get_tipo_credito_display()}\n"
+                    f"Banco: {instance.banco.nombre}\n"
+                    f"Plazo en meses: {instance.plazo_meses}\n"
+                    f"ID de operacion: {instance.pk}\n"
+                    f"ID de operacion: {instance.pk}\n"
+                )
+
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [cliente_mail],
+                    fail_silently=False,
+                )
+                logger.info(f"EMAIL_ENVIADO | Credito ID={instance.pk} enviado a {cliente_mail}")
+            else:
+                logger.warning(f"EMAIL_NO_ENVIADO | El cliente ID={instance.cliente.pk} no tiene email registrado.")
+
+        except Exception as e:
+            logger.error(f"ERROR_ENVIO_EMAIL | Credito ID={instance.pk}: {str(e)}")
