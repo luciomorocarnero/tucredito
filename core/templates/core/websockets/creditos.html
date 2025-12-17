@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Creditos Websocket Debug</title>
+  </head>
+  <body>
+    <h1>Notificacion Creditos</h1>
+    <p>Abrir Consola</p>
+    <script>
+      const protocol =
+        window.location.protocol === "https:" ? "wss://" : "ws://";
+
+      const wsHost =
+        protocol === "wss://"
+          ? window.location.host
+          : window.location.host;
+
+      const chatSocket = new WebSocket(
+        protocol + wsHost + "/ws/notif/creditos/",
+      );
+
+      chatSocket.onopen = function (e) {
+        console.log("Websocket Conectado");
+        console.log(e);
+      };
+      chatSocket.onerror = function (e) {
+        console.log("Websocket Desconectado");
+        console.log(e);
+      };
+      chatSocket.onmessage = function (e) {
+        console.log("Nuevo Mensaje");
+        const data = JSON.parse(e.data);
+        console.log(data);
+      };
+
+      chatSocket.onclose = function (e) {
+        console.log("Websocket Desconectado");
+        console.error(e.data);
+      };
+    </script>
+  </body>
+</html>

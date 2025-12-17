@@ -56,3 +56,9 @@ class CreditoViewSet(viewsets.ModelViewSet):
 
     ordering_fields = ["created_at"]
     ordering = ["-created_at"]
+
+
+
+
+def creditos_notif(request):
+    return render(request, "core/websockets/creditos.html")
