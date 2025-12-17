@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:17.4
+    container_name: tucredito-db
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: tucredito-redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
+  django-web:
+    build: .
+    container_name: tucredito-django
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    env_file:
+      - .env
+    networks:
+      - backend
+
+  frontend-proxy:
+    image: nginx:1.25-alpine
+    container_name: tucredito-nginx
+    depends_on:
+      - django-web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - static_data:/static:ro
+      - media_data:/media:ro
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_data:
+  media_data:
+
+networks:
+  backend:
+    driver: bridge

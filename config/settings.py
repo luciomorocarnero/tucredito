@@ -13,12 +13,15 @@ env.read_env()
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-cfjzmook0rv7)77+6%5+wp=%+dj0b19gq9%q(%1$re)18r@gl^"
+SECRET_KEY = env.str("DJANGO_SECRET_KEY", default="django-insecure-cfjzmook0rv7)77+6%5+wp=%+dj0b19gq9%q(%1$re)18r@gl^")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
+
+# CSRF Trusted Origins (Necesario para Django 4.0+)
+CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 
 
 # Application definition
@@ -100,17 +103,17 @@ if DEBUG:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-# else:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.postgresql",
-#             "NAME": env("DATABASE_NAME"),
-#             "USER": env("DATABASE_USERNAME"),
-#             "PASSWORD": env("DATABASE_PASSWORD"),
-#             "HOST": env("DATABASE_HOST"),
-#             "PORT": env("DATABASE_PORT"),
-#         }
-#     }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env.str("DATABASE_NAME"),
+            "USER": env.str("DATABASE_USERNAME"),
+            "PASSWORD": env.str("DATABASE_PASSWORD"),
+            "HOST": env.str("DATABASE_HOST"),
+            "PORT": env.int("DATABASE_PORT", default=5432),
+        }
+    }
 
 
 # Password validation
@@ -214,6 +217,6 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
 EMAIL_AVAILABLE = False
